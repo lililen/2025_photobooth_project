@@ -35,12 +35,14 @@ def load_style_transfer(style= 'starry_night'):
         'mosaic': 'mosaic_pretrained.pth',
         'rain_princess': 'rain_princess_pretrained.pth'
     }
+    models_dir = os.path.join(os.path.dirname(__file__), 'models')
     model_path = os.path.join('models', model_files[style])
 
-    if not os.path.exists(model_path):
+    if not os.path.exists(model_path='models/starry_night_pretrained.pth'):
         raise FileNotFoundError(f"file {model_path} not found.")
     model = torch.jit.load(model_path, map_location= 'cpu')
     return model.eval()
+    
 try: 
     vg_model = load_style_transfer('starry_night')
 
