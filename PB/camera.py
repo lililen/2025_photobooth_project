@@ -1,5 +1,6 @@
 import cv2
 import sys
+import os
 import numpy as np
 import torch 
 from torchvision.models.segmentation import fcn_resnet50
@@ -29,26 +30,31 @@ def watercolor(frame):
 
 #option 3 van ghoh
 def load_style_transfer(style= 'starry_night'):
-    torch.hub._validate_not_a_forked_repo=lambda a,b,c: True
-    model = torch.hub.load(
-        'pytorch/vision',
-        'fast_neural_style',
-        style_name=style,
-        pretrained = True
-    )
+    model_files = {
+        'starry_night': 'starry_night_pretrained.pth',
+        'mosaic': 'mosaic_pretrained.pth',
+        'rain_princess': 'rain_princess_pretrained.pth'
+    }
+    model_path = os.path.join('models', model_files[style])
+
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"file {model_path} not found.")
+    model = torch.jit.load(model_path, map_location= 'cpu')
     return model.eval()
+try: 
+    vg_model = load_style_transfer('starry_night')
 
-vg_model = load_style_transfer('starry_night')
+    #option 4 monet
+    monet_model=load_style_transfer('mosaic')
 
-#option 4 monet
-monet_model=load_style_transfer('masaic')
+    #option 5 candy
+    # candy_model = load_style_transfer('candy')
 
-#option 5 candy
-# candy_model = load_style_transfer('candy')
-
-#option 6 rainprincess
-# rainp_model = load_style_transfer('rain_princess')
-
+    #option 6 rainprincess
+    # rainp_model = load_style_transfer('rain_princess')
+except Exception as e:
+    print(f"Error loading models: {e}")
+    exit()
 
 def apply_nst(frame, model):
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -59,7 +65,6 @@ def apply_nst(frame, model):
         
     output = output.squeeze().permute(1,2,0).numpy() * 255
     return cv2.cvtColor(output.astype('uint8'), cv2.COLOR_RGB2BGR)
-    return output
 
 
 cap =cv2.VideoCapture(0)
@@ -87,7 +92,7 @@ while True:
         frame =apply_nst(frame, monet_model)
         
     
-    key = cv2.waitKey(1)
+    key = cv2.waitKey(1) & 0xFF
     if key == ord('1'):
         current_effect = None
     elif key == ord('2'):
